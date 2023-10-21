@@ -1,4 +1,4 @@
-package com.example;
+package homework;
 
 
 public class Main {
