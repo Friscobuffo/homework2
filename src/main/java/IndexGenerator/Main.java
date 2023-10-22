@@ -1,32 +1,41 @@
 package IndexGenerator;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Scanner;
 
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.analysis.core.LowerCaseFilterFactory;
+import org.apache.lucene.analysis.core.WhitespaceTokenizerFactory;
+import org.apache.lucene.analysis.custom.CustomAnalyzer;
+import org.apache.lucene.analysis.miscellaneous.PerFieldAnalyzerWrapper;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
+import org.apache.lucene.codecs.simpletext.SimpleTextCodec;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.TextField;
+import org.apache.lucene.index.DirectoryReader;
+import org.apache.lucene.index.FieldInfos;
+import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
+import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 
 import com.opencsv.CSVReader;
-import com.opencsv.exceptions.CsvValidationException;
 
 public class Main {
-    private static String readDocument(String documentPath) throws FileNotFoundException {
+    private static String readDocument(String documentPath) throws Exception {
         File documentFile = new File(documentPath);
         Scanner reader = new Scanner(documentFile);
         String content = "";
@@ -37,7 +46,8 @@ public class Main {
         return content;
     }
 
-    private static List<ImmutablePair<String, String>> readDocuments(String documentsFolderPath) throws FileNotFoundException {
+    @SuppressWarnings("unused")
+    private static List<ImmutablePair<String, String>> readDocuments(String documentsFolderPath) throws Exception {
         File documentsFolder = new File(documentsFolderPath);
         List<ImmutablePair<String, String>> documents = new ArrayList<>();
         for (File documentFile : documentsFolder.listFiles()) {
@@ -51,7 +61,7 @@ public class Main {
         return documents;
     }
 
-    private static List<ImmutablePair<String, String>> readDocumentsCSV(String csvPath) throws FileNotFoundException, IOException, CsvValidationException {
+    private static List<ImmutablePair<String, String>> readDocumentsCSV(String csvPath) throws Exception {
         List<ImmutablePair<String, String>> documents = new ArrayList<>();
         CSVReader csvReader = new CSVReader(new FileReader(csvPath));
         String[] values = csvReader.readNext();
@@ -63,11 +73,21 @@ public class Main {
         return documents;
     }
 
-    public static void main(String[] args) throws IOException, CsvValidationException {
+    public static void main(String[] args) throws Exception {
         Path indexesPath = Paths.get("/home/giordy/Documents/homework2/index");
         Directory indexDirectory = FSDirectory.open(indexesPath);
-        Analyzer defaultAnalyzer = new StandardAnalyzer();
-        IndexWriterConfig config = new IndexWriterConfig(defaultAnalyzer);
+
+        Map<String, Analyzer> perFieldAnalyzers = new HashMap<>();
+        Analyzer analyzerTitolo = CustomAnalyzer.builder()
+            .withTokenizer(WhitespaceTokenizerFactory.class)
+            .addTokenFilter(LowerCaseFilterFactory.class)
+            .build();
+        perFieldAnalyzers.put("title", analyzerTitolo);
+        perFieldAnalyzers.put("body", new StandardAnalyzer());
+        Analyzer analyzer = new PerFieldAnalyzerWrapper(new StandardAnalyzer(), perFieldAnalyzers);
+
+        IndexWriterConfig config = new IndexWriterConfig(analyzer);
+        config.setCodec(new SimpleTextCodec());
         IndexWriter writer = new IndexWriter(indexDirectory, config);
         writer.deleteAll();
 
@@ -79,13 +99,20 @@ public class Main {
             String documentContent = documentFields.right;
 
             Document document = new Document();
-            document.add(new TextField("titolo", documentName, Field.Store.YES));
-            document.add(new TextField("contenuto", documentContent, Field.Store.YES));
+            document.add(new TextField("title", documentName, Field.Store.YES));
+            document.add(new TextField("body", documentContent, Field.Store.NO));
 
             writer.addDocument(document);
         }
         writer.commit();
         writer.close();
+
+        IndexReader reader = DirectoryReader.open(indexDirectory);
+        IndexSearcher searcher = new IndexSearcher(reader);
+        Collection<String> indexedFields = FieldInfos.getIndexedFields(reader);
+        for (String field : indexedFields) {
+            System.out.println(searcher.collectionStatistics(field));
+        }
         indexDirectory.close();
     }
 }
