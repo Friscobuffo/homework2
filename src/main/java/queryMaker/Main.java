@@ -4,7 +4,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Scanner;
 
-import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.lucene.analysis.core.WhitespaceAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.DirectoryReader;
@@ -19,24 +18,20 @@ import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 
 public class Main {
-    private static ImmutablePair<String, String> getQueryFields(String queryInput) {
-        int separator = queryInput.indexOf(":");
-        String queryField = queryInput.substring(0, separator);
-        String queryString = queryInput.substring(separator+2, queryInput.length());
-        return new ImmutablePair<>(queryField, queryString);
-    }
-
     @SuppressWarnings("deprecation")
     private static void executeQuery(IndexSearcher searcher, String queryInput) throws Exception {
-        ImmutablePair<String, String> queryFields = getQueryFields(queryInput);
-        String queryField = queryFields.left;
-        String queryString = queryFields.right;
         Query query = null;
-        if (queryField.equals("title")) {
+        if (queryInput.startsWith("title: ")) {
+            String queryField = "title";
+            String queryString = queryInput.replaceFirst("title: ", "");
             query = new PhraseQuery(1, queryField, queryString.split(" "));
-        } else {
+        } else if (queryInput.startsWith("body: ")){
+            String queryField = "body";
+            String queryString = queryInput.replaceFirst("body: ", "");
             QueryParser queryParser = new QueryParser(queryField, new WhitespaceAnalyzer());
             query = queryParser.parse(queryString);
+        } else {
+            throw new Exception();
         }
         TopDocs hits = searcher.search(query, 5);
         for (ScoreDoc scoreDoc : hits.scoreDocs) {
@@ -52,10 +47,16 @@ public class Main {
         IndexSearcher searcher = new IndexSearcher(reader);
 
         Scanner scanner = new Scanner(System.in);
-        System.out.println("Enter query:");
-        String queryString = scanner.nextLine();
-        executeQuery(searcher, queryString);
-
+        String anotherQuery = null;
+        do {
+            System.out.println("Enter query:");
+            String queryString = scanner.nextLine();
+            try { executeQuery(searcher, queryString); } 
+            catch (Exception e) { System.out.println("query input must be like <field>: <query>"); }
+            System.out.println("Make another query? (y/n)");
+            anotherQuery = scanner.nextLine();
+        } while (anotherQuery.equals("y"));
+        System.out.println("Bye bye");
         directory.close();
         scanner.close();
     }

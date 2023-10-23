@@ -72,17 +72,6 @@ public class Main {
         return documents;
     }
 
-    private static void printDatasetStats(List<ImmutablePair<String, String>> documents) {
-        int documentsNumber = 0;
-        int totalChars = 0;
-        for (ImmutablePair<String, String> documentFields : documents) {
-            documentsNumber += 1;
-            totalChars += documentFields.right.length();
-        }
-        System.out.println("Total documents in csv: " + documentsNumber);
-        System.out.println("Average chars per document: " + (totalChars/documentsNumber));
-    }
-
     public static void main(String[] args) throws Exception {
         long startTime = System.currentTimeMillis();
         Path indexesPath = Paths.get("/home/giordy/Documents/homework2/index");
@@ -129,5 +118,19 @@ public class Main {
         }
         indexDirectory.close();
         printDatasetStats(documents);
+    }
+
+    private static void printDatasetStats(List<ImmutablePair<String, String>> documents) {
+        float documentsNumber = 0;
+        float totalCharsBody = 0;
+        float totalCharsTitle = 0;
+        for (ImmutablePair<String, String> documentFields : documents) {
+            documentsNumber += 1;
+            totalCharsBody += documentFields.right.length();
+            totalCharsTitle += documentFields.left.length();
+        }
+        System.out.println("Total documents in csv: " + documentsNumber);
+        System.out.println("Average chars per document title: " + (totalCharsTitle/documentsNumber));
+        System.out.println("Average chars per document body: " + (totalCharsBody/documentsNumber));
     }
 }
