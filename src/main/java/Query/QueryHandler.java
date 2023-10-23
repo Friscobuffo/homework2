@@ -1,8 +1,7 @@
-package queryMaker;
+package Query;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Scanner;
 
 import org.apache.lucene.analysis.core.WhitespaceAnalyzer;
 import org.apache.lucene.document.Document;
@@ -17,9 +16,21 @@ import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 
-public class Main {
+public class QueryHandler {
+    Path path = null;
+    Directory directory = null;
+    IndexReader reader = null;
+    IndexSearcher searcher = null;
+
+    public QueryHandler(String indexPathString) throws Exception{
+        this.path = Paths.get(indexPathString);
+        this.directory = FSDirectory.open(path);
+        this.reader = DirectoryReader.open(directory);
+        this.searcher = new IndexSearcher(reader);
+    }
+
     @SuppressWarnings("deprecation")
-    private static void executeQuery(IndexSearcher searcher, String queryInput) throws Exception {
+    public void executeQuery(String queryInput, int numberResultDocuments) throws Exception {
         Query query = null;
         if (queryInput.startsWith("title: ")) {
             String queryField = "title";
@@ -31,33 +42,17 @@ public class Main {
             QueryParser queryParser = new QueryParser(queryField, new WhitespaceAnalyzer());
             query = queryParser.parse(queryString);
         } else {
-            throw new Exception();
+            System.out.println("query input must be like <field>: <query>");
+            return;
         }
-        TopDocs hits = searcher.search(query, 5);
+        TopDocs hits = this.searcher.search(query, numberResultDocuments);
         for (ScoreDoc scoreDoc : hits.scoreDocs) {
             Document doc = searcher.doc(scoreDoc.doc);
             System.out.println("doc"+scoreDoc.doc + ": "+ doc.get("title") + " (" + scoreDoc.score +")");
         }
     }
 
-    public static void main(String[] args) throws Exception {
-        Path path = Paths.get("/home/giordy/Documents/homework2/index");
-        Directory directory = FSDirectory.open(path);
-        IndexReader reader = DirectoryReader.open(directory);
-        IndexSearcher searcher = new IndexSearcher(reader);
-
-        Scanner scanner = new Scanner(System.in);
-        String anotherQuery = null;
-        do {
-            System.out.println("Enter query:");
-            String queryString = scanner.nextLine();
-            try { executeQuery(searcher, queryString); } 
-            catch (Exception e) { System.out.println("query input must be like <field>: <query>"); }
-            System.out.println("Make another query? (y/n)");
-            anotherQuery = scanner.nextLine();
-        } while (anotherQuery.equals("y"));
-        System.out.println("Bye bye");
-        directory.close();
-        scanner.close();
+    public void closeDirectory() throws Exception{
+        this.directory.close();
     }
 }
