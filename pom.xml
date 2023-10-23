@@ -13,6 +13,7 @@
         <maven.compiler.target>1.8</maven.compiler.target>
         <lucene.version>9.8.0</lucene.version>
     </properties>
+
     <dependencies>
         <dependency>
             <groupId>com.opencsv</groupId>
@@ -86,5 +87,4 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
-
 </project>
