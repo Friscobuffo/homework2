@@ -11,7 +11,7 @@ import org.apache.commons.lang3.tuple.ImmutablePair;
 
 import com.opencsv.CSVReader;
 
-public class DocumentHandler {
+public class DocumentsHandler {
     public static List<ImmutablePair<String, String>> readDocumentsCSV(String csvPath) throws Exception {
         List<ImmutablePair<String, String>> documents = new ArrayList<>();
         CSVReader csvReader = new CSVReader(new FileReader(csvPath));

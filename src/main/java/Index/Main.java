@@ -11,7 +11,7 @@ public class Main {
 
         long startTime = System.currentTimeMillis();
         IndexHandler indexHandler = new IndexHandler(indexPath);
-        List<ImmutablePair<String, String>> documents = DocumentHandler.readDocumentsCSV(documentsCsvPath);
+        List<ImmutablePair<String, String>> documents = DocumentsHandler.readDocumentsCSV(documentsCsvPath);
         indexHandler.generate(documents);
         long endTime = System.currentTimeMillis();
         long totalTime = endTime - startTime;
@@ -20,6 +20,6 @@ public class Main {
         indexHandler.printIndexStats();
         indexHandler.closeIndexDirectory();
 
-        DocumentHandler.printDatasetStats(documents);
+        DocumentsHandler.printDatasetStats(documents);
     }
 }
