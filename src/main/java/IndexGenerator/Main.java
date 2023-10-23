@@ -19,7 +19,6 @@ import org.apache.lucene.analysis.core.WhitespaceTokenizerFactory;
 import org.apache.lucene.analysis.custom.CustomAnalyzer;
 import org.apache.lucene.analysis.miscellaneous.PerFieldAnalyzerWrapper;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
-import org.apache.lucene.codecs.simpletext.SimpleTextCodec;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.TextField;
@@ -73,7 +72,19 @@ public class Main {
         return documents;
     }
 
+    private static void printDatasetStats(List<ImmutablePair<String, String>> documents) {
+        int documentsNumber = 0;
+        int totalChars = 0;
+        for (ImmutablePair<String, String> documentFields : documents) {
+            documentsNumber += 1;
+            totalChars += documentFields.right.length();
+        }
+        System.out.println("Total documents in csv: " + documentsNumber);
+        System.out.println("Average chars per document: " + (totalChars/documentsNumber));
+    }
+
     public static void main(String[] args) throws Exception {
+        long startTime = System.currentTimeMillis();
         Path indexesPath = Paths.get("/home/giordy/Documents/homework2/index");
         Directory indexDirectory = FSDirectory.open(indexesPath);
 
@@ -87,7 +98,7 @@ public class Main {
         Analyzer analyzer = new PerFieldAnalyzerWrapper(new StandardAnalyzer(), perFieldAnalyzers);
 
         IndexWriterConfig config = new IndexWriterConfig(analyzer);
-        config.setCodec(new SimpleTextCodec());
+        //config.setCodec(new SimpleTextCodec());
         IndexWriter writer = new IndexWriter(indexDirectory, config);
         writer.deleteAll();
 
@@ -105,8 +116,11 @@ public class Main {
             writer.addDocument(document);
         }
         writer.commit();
+        long endTime = System.currentTimeMillis();
+        long totalTime = endTime - startTime;
         writer.close();
 
+        System.out.println("Index created in " + totalTime + " milliseconds");
         IndexReader reader = DirectoryReader.open(indexDirectory);
         IndexSearcher searcher = new IndexSearcher(reader);
         Collection<String> indexedFields = FieldInfos.getIndexedFields(reader);
@@ -114,5 +128,6 @@ public class Main {
             System.out.println(searcher.collectionStatistics(field));
         }
         indexDirectory.close();
+        printDatasetStats(documents);
     }
 }
