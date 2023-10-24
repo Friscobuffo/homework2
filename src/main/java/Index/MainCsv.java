@@ -4,7 +4,7 @@ import java.util.List;
 
 import org.apache.commons.lang3.tuple.ImmutablePair;
 
-public class Main {
+public class MainCsv {
     public static void main(String[] args) throws Exception {
         String indexPath = "/home/giordy/Documents/homework2/index";
         String documentsCsvPath = "/home/giordy/Documents/homework2/poki.csv";

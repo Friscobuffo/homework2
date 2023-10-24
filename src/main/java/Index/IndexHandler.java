@@ -9,9 +9,6 @@ import java.util.Map;
 
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.lucene.analysis.Analyzer;
-import org.apache.lucene.analysis.core.LowerCaseFilterFactory;
-import org.apache.lucene.analysis.core.WhitespaceTokenizerFactory;
-import org.apache.lucene.analysis.custom.CustomAnalyzer;
 import org.apache.lucene.analysis.miscellaneous.PerFieldAnalyzerWrapper;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
@@ -26,6 +23,8 @@ import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 
+import Analyzer.AnalyzerFactory;
+
 public class IndexHandler {
     private Analyzer analyzer = null;
     private IndexWriterConfig config = null;
@@ -35,12 +34,10 @@ public class IndexHandler {
     public IndexHandler(String indexPathString) throws Exception{
         this.indexPathString = indexPathString;
         Map<String, Analyzer> perFieldAnalyzers = new HashMap<>();
-        Analyzer analyzerTitolo = CustomAnalyzer.builder()
-            .withTokenizer(WhitespaceTokenizerFactory.class)
-            .addTokenFilter(LowerCaseFilterFactory.class)
-            .build();
-        perFieldAnalyzers.put("title", analyzerTitolo);
-        perFieldAnalyzers.put("body", new StandardAnalyzer());
+        Analyzer analyzerTitle = AnalyzerFactory.giveTitleAnalyzer();
+        Analyzer analyzerBody = AnalyzerFactory.giveBodyAnalyzer();
+        perFieldAnalyzers.put("title", analyzerTitle);
+        perFieldAnalyzers.put("body", analyzerBody);
         this.analyzer = new PerFieldAnalyzerWrapper(new StandardAnalyzer(), perFieldAnalyzers);
         this.config = new IndexWriterConfig(analyzer);
         //this.config.setCodec(new SimpleTextCodec());
@@ -59,7 +56,7 @@ public class IndexHandler {
 
             Document document = new Document();
             document.add(new TextField("title", documentName, Field.Store.YES));
-            document.add(new TextField("body", documentContent, Field.Store.NO));
+            document.add(new TextField("body", documentContent, Field.Store.YES));
 
             writer.addDocument(document);
         }
