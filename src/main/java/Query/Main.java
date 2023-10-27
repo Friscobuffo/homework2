@@ -5,7 +5,7 @@ import java.util.Scanner;
 public class Main {
     
     public static void main(String[] args) throws Exception {
-        String indexPath = "/home/giordy/Documents/homework2/index";
+        String indexPath = "/home/giordy/IdeaProjects/homework2/index";
         QueryHandler queryHandler = new QueryHandler(indexPath);
 
         Scanner scanner = new Scanner(System.in);

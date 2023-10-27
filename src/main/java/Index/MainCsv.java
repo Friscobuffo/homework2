@@ -6,8 +6,8 @@ import org.apache.commons.lang3.tuple.ImmutablePair;
 
 public class MainCsv {
     public static void main(String[] args) throws Exception {
-        String indexPath = "/home/giordy/Documents/homework2/index";
-        String documentsCsvPath = "/home/giordy/Documents/homework2/poki.csv";
+        String indexPath = "/home/giordy/IdeaProjects/homework2/index";
+        String documentsCsvPath = "/home/giordy/IdeaProjects/homework2/poki.csv";
 
         long startTime = System.currentTimeMillis();
         IndexHandler indexHandler = new IndexHandler(indexPath);
