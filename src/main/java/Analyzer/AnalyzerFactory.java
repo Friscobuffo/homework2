@@ -11,8 +11,7 @@ public class AnalyzerFactory {
         String stopwordsPath = "/home/giordy/IdeaProjects/homework2/stopwords.txt";
         File stopwordsFile = new File(stopwordsPath);
         FileReader reader = new FileReader(stopwordsFile);
-        Analyzer bodyAnalyzer = new StandardAnalyzer(reader);
-        return bodyAnalyzer;
+        return new StandardAnalyzer(reader);
     }
 
     public static Analyzer giveTitleAnalyzer () {

@@ -9,7 +9,7 @@ public class Main {
         QueryHandler queryHandler = new QueryHandler(indexPath);
 
         Scanner scanner = new Scanner(System.in);
-        String anotherQuery = null;
+        String anotherQuery;
         do {
             System.out.println("Enter query:");
             String queryString = scanner.nextLine();
